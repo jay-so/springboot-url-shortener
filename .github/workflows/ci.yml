@@ -40,7 +40,7 @@ jobs:
         with:
           character set server: 'utf8'
           mysql database: 'url'
-          mysql user: 'root'
+          mysql user: 'test'
           mysql password: ${{ secrets.MYSQL_PASSWORD }} 
           
       - name: Build and analyze
