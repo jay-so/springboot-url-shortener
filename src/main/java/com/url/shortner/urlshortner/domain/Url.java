@@ -35,6 +35,11 @@ public class Url {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    public Url(String originalUrl) {
+        validateUrl(originalUrl);
+        this.originalUrl = originalUrl;
+    }
+
     @Builder
     public Url(Long id, String originalUrl, ShortedUrl shortedUrl) {
         validateUrl(originalUrl);
