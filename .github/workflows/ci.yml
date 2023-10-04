@@ -1,4 +1,4 @@
-name: CI
+name: ci
 
 on:
   push: # 아래 브랜치에 Push되면 작동
@@ -27,13 +27,11 @@ jobs:
           java-version: 17
           distribution: 'temurin'
           cache: 'gradle'
-          
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v3
+
+      - name: Build with Gradle # 빌드 작업
+        uses: gradle/gradle-build-action@v2
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          arguments: build
           
       - name: setup MySQL
         uses: samin/mysql-action@v1
@@ -42,10 +40,38 @@ jobs:
           mysql database: 'url'
           mysql user: 'test'
           mysql password: ${{ secrets.MYSQL_PASSWORD }} 
-          
+
+      - name: 테스트 결과를 'PR 코멘트'로 자동 작성
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()  # 실패 여부 상관없이 항상 실행~
+        with:
+          files: build/test-results/test/TEST-*.xml
+
+      - name: 테스트 코드 중 테스트 실패한 부분에 'PR check'로 자동 작성
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          report_paths: build/test-results/test/TEST-*.xml
+
+      - name: 테스트 커버리지 리포트
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.6
+        with:
+          title: Test Coverage Report
+          paths: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 30
+          min-coverage-changed-files: 50
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
       - name: Build and analyze
         run: ./gradlew build jacocoTestReport sonar --info
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_CLOUD_TOKEN }}
-
