@@ -9,5 +9,4 @@ class UrlshortnerApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }
