@@ -32,7 +32,6 @@ public class Url {
     private long requestCount = 0L;
 
     @CreatedDate
-    @Column(updatable = false)
     private LocalDateTime createdAt;
 
     public Url(String originalUrl) {
